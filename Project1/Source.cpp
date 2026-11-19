@@ -6,8 +6,8 @@
 int main(int argc, char** argv)
 {
 	std::string message = "Hello world !";
-	
-    {
+
+	{
 		std::ifstream src(argv[1], std::ios::binary);
 		std::ofstream dst(argv[2], std::ios::binary);
 		dst << src.rdbuf();
@@ -17,16 +17,10 @@ int main(int argc, char** argv)
 
 	BITMAPFILEHEADER fileheader = {};
 	BITMAPINFOHEADER infoheader = {};
-	unsigned char clr[13];
-	
-	file.read(reinterpret_cast<char*>(&fileheader), sizeof(fileheader));
-	file.read(reinterpret_cast<char*>(&infoheader), sizeof(infoheader)); 
 
-	for (int i = 0; i < message.size(); i++)
-	{
-		clr[i] = message[i];
-		
-	}
+	file.read(reinterpret_cast<char*>(&fileheader), sizeof(fileheader));
+	file.read(reinterpret_cast<char*>(&infoheader), sizeof(infoheader));
+
 	int width = infoheader.biWidth;
 	int height = std::abs(infoheader.biHeight);
 
@@ -36,11 +30,15 @@ int main(int argc, char** argv)
 		for (int x = 0; x < width; ++x) {
 			std::streampos pos = fileheader.bfOffBits + (std::streamoff)y * rowSize + x * 3;
 			file.seekp(pos, std::ios::beg);
-			file.write(reinterpret_cast<char*>(clr), 3);
+
+			if (x < message.size())
+				file.write(&message[x], 1);
+			else
+			{
+				// reecrire le pixel original
+			}
 		}
 	}
 
 	file.close();
-	std::cout << int(clr[0]) << " " << int(clr[1]) << " " << int(clr[2]) << "\n";
-
 }
