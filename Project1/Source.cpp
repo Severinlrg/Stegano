@@ -2,6 +2,7 @@
 #include <fstream>
 #include <windows.h>
 #include <vector>
+#include <bitset>
 
 int main(int argc, char** argv)
 {
@@ -22,21 +23,24 @@ int main(int argc, char** argv)
 	file.read(reinterpret_cast<char*>(&infoheader), sizeof(infoheader));
 
 	int width = infoheader.biWidth;
-	int height = std::abs(infoheader.biHeight);
-
 	int rowSize = ((width * 3 + 3) / 4) * 4;
 
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			std::streampos pos = fileheader.bfOffBits + (std::streamoff)y * rowSize + x * 3;
-			file.seekp(pos, std::ios::beg);
+	std::streampos pos = fileheader.bfOffBits;
 
-			if (x < message.size())
-				file.write(&message[x], 1);
-			else
-			{
-				// reecrire le pixel original
-			}
+	for (char binaire : message) {
+		std::bitset<8> bits(binaire);
+		std::cout << bits << ' ';
+
+		for (int i = 7; i >= 0; --i) {       
+			file.seekg(pos);
+			char byte;
+			file.read(&byte, 1);              
+
+			byte = (byte & 0xFE) | bits[i];  
+
+			file.seekp(pos);
+			file.write(&byte, 1);
+			pos += 1;
 		}
 	}
 
